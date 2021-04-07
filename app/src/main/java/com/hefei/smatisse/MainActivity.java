@@ -4,10 +4,8 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -45,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        checkPermissions();
+
         multimediaListAdapter = new MultimediaListAdapter(this);
         rvMultimedia.setLayoutManager(new GridLayoutManager(this, 2));
         rvMultimedia.setAdapter(multimediaListAdapter);
@@ -65,6 +65,22 @@ public class MainActivity extends AppCompatActivity {
                 multimediaListBeanList.add(new MultimediaListAdapter.MultimediaListBean(getType(item), item));
             }
             multimediaListAdapter.setData(multimediaListBeanList);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 101) {
+            if (grantResults.length > 0) {
+                for (int grantCode : grantResults) {
+                    if (grantCode == PackageManager.PERMISSION_GRANTED) {
+
+                    } else {
+                        // 弹窗说明需要权限
+                    }
+                }
+            }
         }
     }
 
@@ -118,5 +134,27 @@ public class MainActivity extends AppCompatActivity {
 
     private int getType(String path) {
         return path.contains("mp4") ? 2 : 1;
+    }
+
+    /**
+     * 权限申请
+     */
+    private void checkPermissions() {
+        String[] permissions = new String[]{
+                Manifest.permission.CAMERA,
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE};
+
+        List<String> mPermissionList = new ArrayList<>();
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                mPermissionList.add(permission);
+            }
+        }
+
+        if (mPermissionList.size() > 0) {
+            ActivityCompat.requestPermissions(this, mPermissionList.toArray(new String[mPermissionList.size()]), 101);
+        }
     }
 }
